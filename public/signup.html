@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up — KrishiRakshak</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌿</text></svg>">
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+</head>
+<body>
+    <div class="auth-page">
+        <div class="auth-visual">
+            <div class="auth-visual-content">
+                <div class="visual-icon">🌱</div>
+                <h2>Join KrishiRakshak</h2>
+                <p>Start protecting your crops today with AI-powered alerts and expert guidance in your language.</p>
+                <div style="margin-top:40px;">
+                    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;opacity:0.9;">
+                        <span style="font-size:1.3rem;">✅</span>
+                        <span>Free real-time pest & disease alerts</span>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;opacity:0.9;">
+                        <span style="font-size:1.3rem;">✅</span>
+                        <span>AI-powered crop disease scanner</span>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;opacity:0.9;">
+                        <span style="font-size:1.3rem;">✅</span>
+                        <span>Expert chatbot in Hindi, English, Punjabi</span>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:12px;opacity:0.9;">
+                        <span style="font-size:1.3rem;">✅</span>
+                        <span>Weather-based disease predictions</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="auth-form-wrapper">
+            <div class="auth-form-container">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:32px;">
+                    <div class="lang-selector">
+                        <button class="lang-btn active" data-lang="en">EN</button>
+                        <button class="lang-btn" data-lang="hi">हिं</button>
+                        <button class="lang-btn" data-lang="pa">ਪੰ</button>
+                    </div>
+                </div>
+
+                <h1 data-i18n="signupTitle">Join KrishiRakshak</h1>
+                <p class="auth-subtitle" data-i18n="signupSubtitle">Create your account and protect your crops</p>
+
+                <form class="auth-form" id="signup-form" onsubmit="handleSignup(event)">
+                    <div class="form-group">
+                        <label class="form-label" data-i18n="fullName">Full Name</label>
+                        <input type="text" class="form-input" id="signup-name" name="name" placeholder="Rajinder Singh" required>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" data-i18n="email">Email Address</label>
+                            <input type="email" class="form-input" id="signup-email" name="email" placeholder="farmer@example.com" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" data-i18n="phone">Phone Number</label>
+                            <input type="tel" class="form-input" id="signup-phone" name="phone" placeholder="+91 98765 43210">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" data-i18n="password">Password</label>
+                            <input type="password" class="form-input" id="signup-password" name="password" placeholder="••••••••" required minlength="6">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" data-i18n="confirmPassword">Confirm Password</label>
+                            <input type="password" class="form-input" id="signup-confirm" name="confirmPassword" placeholder="••••••••" required minlength="6">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-lg" style="width:100%;" id="signup-btn">
+                        <span>🌾</span> <span data-i18n="signup">Sign Up</span>
+                    </button>
+                </form>
+
+                <div class="auth-divider" data-i18n="orContinueWith">Or continue with</div>
+
+                <button class="google-btn" onclick="handleGoogleSignup()">
+                    <span style="font-size:1.2rem;">G</span>
+                    <span>Google</span>
+                </button>
+
+                <p class="auth-footer" style="margin-top:24px;">
+                    <span data-i18n="hasAccount">Already have an account?</span>
+                    <a href="/login.html" data-i18n="login">Login</a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/i18n.js"></script>
+    <script src="/js/app.js"></script>
+    <script src="/js/auth.js"></script>
+    <script>
+        if (auth.isLoggedIn()) auth.redirectToDashboard();
+
+        async function handleSignup(e) {
+            e.preventDefault();
+            const btn = document.getElementById('signup-btn');
+            const name = document.getElementById('signup-name').value.trim();
+            const email = document.getElementById('signup-email').value.trim();
+            const phone = document.getElementById('signup-phone').value.trim();
+            const password = document.getElementById('signup-password').value;
+            const confirm = document.getElementById('signup-confirm').value;
+
+            if (password !== confirm) {
+                Toast.error('Password Mismatch', 'Passwords do not match.');
+                return;
+            }
+
+            btn.innerHTML = '<div class="spinner" style="width:20px;height:20px;border-width:2px;margin:0 auto;"></div>';
+            btn.disabled = true;
+
+            const result = await auth.signup(name, email, password, 'farmer', phone);
+
+            if (result.success) {
+                if (result.needsVerification) {
+                    Toast.success('Verification Email Sent!', result.message);
+                    btn.innerHTML = '<span>🌾</span> <span data-i18n="signup">Sign Up</span>';
+                    btn.disabled = false;
+                } else {
+                    Toast.success('Account Created!', 'Welcome to KrishiRakshak!');
+                    setTimeout(() => auth.redirectToDashboard(), 1000);
+                }
+            } else {
+                Toast.error('Signup Failed', result.message || 'Could not create account.');
+                btn.innerHTML = '<span>🌾</span> <span data-i18n="signup">Sign Up</span>';
+                btn.disabled = false;
+            }
+        }
+
+        async function handleGoogleSignup() {
+            const result = await auth.googleSignIn('farmer');
+            if (result.success) {
+                Toast.success('Welcome!', 'Account created successfully!');
+                setTimeout(() => auth.redirectToDashboard(), 800);
+            } else {
+                Toast.error('Google Sign-In', result.message);
+            }
+        }
+    </script>
+</body>
+</html>

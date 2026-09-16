@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="KrishiRakshak — AI-powered real-time pest and disease alert system for Indian farmers. Protect your crops with smart technology.">
+    <title>KrishiRakshak — Real-Time Pest & Disease Alert System</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌿</text></svg>">
+</head>
+<body>
+    <!-- ═══ Navbar ═══ -->
+    <nav class="navbar" id="main-navbar">
+        <div class="navbar-inner">
+            <a href="/" class="navbar-brand">
+                <div class="brand-icon">🌿</div>
+                <span data-i18n="appName">KrishiRakshak</span>
+            </a>
+
+            <ul class="navbar-links">
+                <li><a href="#features" data-i18n="home">Home</a></li>
+                <li><a href="#features" data-i18n="learnMore">Features</a></li>
+                <li><a href="#stats" data-i18n="statsTitle">About</a></li>
+            </ul>
+
+            <div class="navbar-actions">
+                <div class="lang-selector">
+                    <button class="lang-btn active" data-lang="en">EN</button>
+                    <button class="lang-btn" data-lang="hi">हिं</button>
+                    <button class="lang-btn" data-lang="pa">ਪੰ</button>
+                </div>
+                <a href="/login.html" class="btn btn-ghost" data-i18n="login">Login</a>
+                <a href="/signup.html" class="btn btn-primary" data-i18n="signup">Sign Up</a>
+            </div>
+
+            <button class="menu-toggle" onclick="document.querySelector('.navbar-links').classList.toggle('show')">☰</button>
+        </div>
+    </nav>
+
+    <!-- ═══ Hero Section ═══ -->
+    <section class="hero">
+        <div class="hero-particles">
+            <div class="hero-particle"></div>
+            <div class="hero-particle"></div>
+            <div class="hero-particle"></div>
+            <div class="hero-particle"></div>
+            <div class="hero-particle"></div>
+            <div class="hero-particle"></div>
+        </div>
+
+        <div class="hero-inner">
+            <div class="hero-content animate-fadeInUp">
+                <h1>
+                    <span data-i18n="heroTitle">Protect Your Crops, Secure Your Future</span>
+                </h1>
+                <p data-i18n="heroSubtitle">AI-powered pest and disease alerts delivered in real-time to help Indian farmers make smarter decisions.</p>
+                <div class="hero-buttons">
+                    <a href="/signup.html" class="btn btn-primary btn-lg" data-i18n="getStarted">Get Started Free</a>
+                    <a href="#features" class="btn btn-secondary btn-lg" data-i18n="learnMore">Learn More</a>
+                </div>
+            </div>
+
+            <div class="hero-visual animate-fadeInUp delay-200">
+                <div class="hero-phone">
+                    <div class="hero-phone-screen">
+                        <div class="phone-status-bar">
+                            <span>9:41</span>
+                            <span>🔋 87%</span>
+                        </div>
+                        <div class="phone-header">
+                            <h4>🌿 KrishiRakshak</h4>
+                            <p>Active Alerts</p>
+                        </div>
+                        <div class="phone-alert-card" style="animation-delay: 0.3s;">
+                            <h5><span class="alert-dot red"></span> Fall Armyworm Alert</h5>
+                            <p>Critical infestation risk — Punjab region. Immediate action needed.</p>
+                        </div>
+                        <div class="phone-alert-card" style="animation-delay: 0.6s;">
+                            <h5><span class="alert-dot amber"></span> Late Blight Warning</h5>
+                            <p>Potato crops at risk. Apply fungicide within 48 hours.</p>
+                        </div>
+                        <div class="phone-alert-card" style="animation-delay: 0.9s;">
+                            <h5><span class="alert-dot green"></span> Weather Alert</h5>
+                            <p>Heavy rain expected. Protect harvested grain.</p>
+                        </div>
+                        <div class="phone-alert-card" style="animation-delay: 1.2s;">
+                            <h5><span class="alert-dot green"></span> Crop Health: Good ✅</h5>
+                            <p>Wheat fields — no issues detected this week.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══ Features ═══ -->
+    <section class="features" id="features">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-badge">🚀 Key Features</div>
+                <h2>Smart Farming Starts Here</h2>
+                <p>Everything you need to protect your crops and boost your harvest.</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card animate-fadeInUp">
+                    <div class="feature-icon">🔔</div>
+                    <h3 data-i18n="feature1Title">Real-Time Alerts</h3>
+                    <p data-i18n="feature1Desc">Get instant notifications about pest and disease outbreaks in your area.</p>
+                </div>
+                <div class="feature-card animate-fadeInUp delay-100">
+                    <div class="feature-icon">🔬</div>
+                    <h3 data-i18n="feature2Title">AI Disease Detection</h3>
+                    <p data-i18n="feature2Desc">Upload a photo of your crop and get instant AI-powered diagnosis.</p>
+                </div>
+                <div class="feature-card animate-fadeInUp delay-200">
+                    <div class="feature-icon">🌤️</div>
+                    <h3 data-i18n="feature3Title">Weather Intelligence</h3>
+                    <p data-i18n="feature3Desc">Hyperlocal weather forecasts with disease risk predictions.</p>
+                </div>
+                <div class="feature-card animate-fadeInUp delay-300">
+                    <div class="feature-icon">🤖</div>
+                    <h3 data-i18n="feature4Title">Expert Guidance</h3>
+                    <p data-i18n="feature4Desc">AI chatbot with treatment recommendations in your language.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══ Stats ═══ -->
+    <section class="stats-section" id="stats">
+        <div class="section-header" style="position:relative;z-index:2;">
+            <div class="section-badge" style="background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.2);color:white;">📊 Impact</div>
+            <h2 style="color:white;" data-i18n="statsTitle">Trusted by Farmers Across India</h2>
+        </div>
+        <div class="stats-grid">
+            <div class="stat-item">
+                <div class="stat-number" data-count="12500">12,500+</div>
+                <div class="stat-text" data-i18n="statFarmers">Active Farmers</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" data-count="45000">45,000+</div>
+                <div class="stat-text" data-i18n="statAlerts">Alerts Sent</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" data-count="28">28+</div>
+                <div class="stat-text" data-i18n="statCrops">Crops Monitored</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" data-count="15">15+</div>
+                <div class="stat-text" data-i18n="statStates">States Covered</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══ CTA ═══ -->
+    <section style="padding:80px 0;text-align:center;background:var(--bg-primary);">
+        <div class="container">
+            <h2 style="font-family:var(--font-display);font-size:2rem;font-weight:800;margin-bottom:16px;color:var(--text-primary);">
+                Ready to Protect Your Crops?
+            </h2>
+            <p style="color:var(--text-muted);font-size:1.1rem;max-width:500px;margin:0 auto 32px;">
+                Join thousands of farmers who are already using KrishiRakshak to safeguard their harvests.
+            </p>
+            <a href="/signup.html" class="btn btn-primary btn-lg">🌾 Start Free — No Credit Card Needed</a>
+        </div>
+    </section>
+
+    <!-- ═══ Footer ═══ -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-brand">
+                <h3>🌿 KrishiRakshak</h3>
+                <p>AI-powered pest and disease alert system designed for Indian farmers. Available in English, Hindi, and Punjabi.</p>
+            </div>
+            <div class="footer-links">
+                <h4>Product</h4>
+                <ul>
+                    <li><a href="#features">Features</a></li>
+                    <li><a href="/signup.html">Get Started</a></li>
+                    <li><a href="#">API Docs</a></li>
+                </ul>
+            </div>
+            <div class="footer-links">
+                <h4>Support</h4>
+                <ul>
+                    <li><a href="#">Help Center</a></li>
+                    <li><a href="#">Contact Us</a></li>
+                    <li><a href="#">Community</a></li>
+                </ul>
+            </div>
+            <div class="footer-links">
+                <h4>Legal</h4>
+                <ul>
+                    <li><a href="#">Privacy Policy</a></li>
+                    <li><a href="#">Terms of Service</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>© 2026 KrishiRakshak. Made with 💚 for Indian Farmers.</p>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="/js/i18n.js"></script>
+    <script src="/js/app.js"></script>
+    <script>
+        // Check if user is already logged in
+        document.addEventListener('DOMContentLoaded', () => {
+            const session = localStorage.getItem('pest_alert_session');
+            if (session) {
+                try {
+                    const data = JSON.parse(session);
+                    if (data.token && data.userData) {
+                        // User is logged in, update navbar
+                        const navActions = document.querySelector('.navbar-actions');
+                        const role = data.userData.role;
+                        const dashLink = role === 'admin' ? '/admin-dashboard.html' : '/farmer-dashboard.html';
+                        navActions.innerHTML = `
+                            <div class="lang-selector">
+                                <button class="lang-btn active" data-lang="en">EN</button>
+                                <button class="lang-btn" data-lang="hi">हिं</button>
+                                <button class="lang-btn" data-lang="pa">ਪੰ</button>
+                            </div>
+                            <a href="${dashLink}" class="btn btn-primary">📊 Dashboard</a>
+                        `;
+                    }
+                } catch (e) {}
+            }
+        });
+    </script>
+</body>
+</html>

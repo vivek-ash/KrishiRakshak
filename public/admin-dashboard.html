@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard — KrishiRakshak</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌿</text></svg>">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+</head>
+<body>
+    <!-- ═══ Navbar ═══ -->
+    <nav class="navbar">
+        <div class="navbar-inner">
+            <div style="display:flex;align-items:center;gap:12px;">
+                <button class="menu-toggle" id="menu-toggle">☰</button>
+                <a href="/" class="navbar-brand">
+                    <div class="brand-icon">🌿</div>
+                    <span>KrishiRakshak</span>
+                </a>
+                <span class="badge badge-critical" style="font-size:0.65rem;">ADMIN</span>
+            </div>
+            <div class="navbar-actions">
+                <div class="lang-selector">
+                    <button class="lang-btn active" data-lang="en">EN</button>
+                    <button class="lang-btn" data-lang="hi">हिं</button>
+                    <button class="lang-btn" data-lang="pa">ਪੰ</button>
+                </div>
+                <div style="position:relative;" id="admin-notif-wrapper">
+                    <button class="notification-bell" id="admin-notif-bell">
+                        🔔 <span class="bell-badge" id="admin-bell-badge" style="display:none;">0</span>
+                    </button>
+                    <div class="notification-dropdown" id="admin-notif-dropdown">
+                        <div class="notif-header">
+                            <h4>Notifications</h4>
+                            <button class="btn btn-sm btn-ghost" id="admin-clear-notifs">Clear All</button>
+                        </div>
+                        <div class="notif-list" id="admin-notif-list">
+                            <div class="notif-empty">🔔 Loading...</div>
+                        </div>
+                    </div>
+                </div>
+                <button class="btn btn-ghost btn-sm" onclick="auth.logout()">🚪 Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="dashboard-layout">
+        <!-- ═══ Sidebar ═══ -->
+        <div class="sidebar-overlay" id="sidebar-overlay"></div>
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-user">
+                <div class="user-avatar" id="user-avatar">A</div>
+                <div class="user-name" id="user-name">Admin</div>
+                <div class="user-role">Administrator</div>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-section">Dashboard</div>
+                <a class="nav-item active" data-section="overview" href="#">
+                    <span class="nav-icon">📊</span> Overview
+                </a>
+                <div class="nav-section">Management</div>
+                <a class="nav-item" data-section="alerts" href="#">
+                    <span class="nav-icon">🔔</span> <span data-i18n="manageAlerts">Manage Alerts</span>
+                    <span class="nav-badge" id="admin-nav-alert-count" style="display:none;">0</span>
+                </a>
+                <a class="nav-item" data-section="farmers" href="#">
+                    <span class="nav-icon">👨‍🌾</span> <span data-i18n="viewFarmers">View Farmers</span>
+                </a>
+                <a class="nav-item" data-section="diseases" href="#">
+                    <span class="nav-icon">🦠</span> <span data-i18n="manageDiseases">Disease Database</span>
+                </a>
+                <div class="nav-section">Insights</div>
+                <a class="nav-item" data-section="analytics" href="#">
+                    <span class="nav-icon">📈</span> <span data-i18n="analytics">Analytics</span>
+                </a>
+                <div class="nav-section">Account</div>
+                <a class="nav-item" href="#" onclick="auth.logout()">
+                    <span class="nav-icon">🚪</span> <span data-i18n="logout">Logout</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- ═══ Main Content ═══ -->
+        <main class="main-content">
+
+            <!-- ── Section: Overview ── -->
+            <div class="dashboard-section active-section" id="section-overview">
+                <div class="page-header">
+                    <h1>📊 <span data-i18n="adminDashboard">Admin Dashboard</span></h1>
+                    <p>System overview and management controls.</p>
+                </div>
+
+                <div class="stats-row">
+                    <div class="stat-card animate-fadeInUp">
+                        <div class="stat-icon green">👥</div>
+                        <div class="stat-value" id="stat-total-users">—</div>
+                        <div class="stat-label" data-i18n="totalUsers">Total Users</div>
+                    </div>
+                    <div class="stat-card animate-fadeInUp delay-100">
+                        <div class="stat-icon blue">👨‍🌾</div>
+                        <div class="stat-value" id="stat-total-farmers">—</div>
+                        <div class="stat-label" data-i18n="totalFarmers">Total Farmers</div>
+                    </div>
+                    <div class="stat-card animate-fadeInUp delay-200">
+                        <div class="stat-icon amber">🔔</div>
+                        <div class="stat-value" id="stat-total-alerts">—</div>
+                        <div class="stat-label" data-i18n="activeAlerts">Active Alerts</div>
+                    </div>
+                    <div class="stat-card animate-fadeInUp delay-300">
+                        <div class="stat-icon green">🌾</div>
+                        <div class="stat-value" id="stat-total-farms">—</div>
+                        <div class="stat-label" data-i18n="totalFarms">Total Farms</div>
+                    </div>
+                    <div class="stat-card animate-fadeInUp delay-400">
+                        <div class="stat-icon red">📅</div>
+                        <div class="stat-value" id="stat-active-today">—</div>
+                        <div class="stat-label">Active Today</div>
+                    </div>
+                </div>
+
+                <div class="content-grid">
+                    <!-- Alert Trend Chart -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>📈 Alert Trends (This Week)</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-container" style="height:280px;">
+                                <canvas id="alert-trend-chart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Admin Actions -->
+                    <div>
+                        <div class="card" style="margin-bottom:var(--space-lg);">
+                            <div class="card-header"><h3>⚡ Admin Actions</h3></div>
+                            <div class="card-body">
+                                <div class="quick-actions" style="grid-template-columns:1fr 1fr;">
+                                    <button class="quick-action-btn" onclick="switchAdminSection('alerts'); setTimeout(openCreateAlert, 300);">
+                                        <div class="action-icon" style="background:#FFF3E0;color:var(--accent-amber);">🔔</div>
+                                        <span class="action-label" data-i18n="createAlert">Create Alert</span>
+                                    </button>
+                                    <button class="quick-action-btn" onclick="switchAdminSection('diseases'); setTimeout(openCreateDisease, 300);">
+                                        <div class="action-icon" style="background:#F3E5F5;color:#6A1B9A;">🦠</div>
+                                        <span class="action-label" data-i18n="createDisease">Add Disease</span>
+                                    </button>
+                                    <button class="quick-action-btn" onclick="switchAdminSection('farmers')">
+                                        <div class="action-icon">👨‍🌾</div>
+                                        <span class="action-label" data-i18n="viewFarmers">View Farmers</span>
+                                    </button>
+                                    <button class="quick-action-btn" onclick="switchAdminSection('analytics')">
+                                        <div class="action-icon" style="background:#E1F5FE;color:var(--info);">📈</div>
+                                        <span class="action-label" data-i18n="analytics">Analytics</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header"><h3>🎯 Severity Distribution</h3></div>
+                            <div class="card-body">
+                                <div class="chart-container" style="height:200px;">
+                                    <canvas id="severity-chart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── Section: Manage Alerts ── -->
+            <div class="dashboard-section hidden" id="section-alerts">
+                <div class="page-header" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;">
+                    <div>
+                        <h1>🔔 <span data-i18n="manageAlerts">Manage Alerts</span></h1>
+                        <p>Create, send, and manage pest/disease alerts for farmers.</p>
+                    </div>
+                    <button class="btn btn-primary" onclick="openCreateAlert()">
+                        ➕ <span data-i18n="createAlert">Create Alert</span>
+                    </button>
+                </div>
+                <div class="card">
+                    <div class="card-body">
+                        <div class="table-container">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Severity</th>
+                                        <th>Title</th>
+                                        <th>Type</th>
+                                        <th>Affected Crops</th>
+                                        <th>Created</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="alerts-table-body">
+                                    <tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:2rem;">Loading...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── Section: Farmers ── -->
+            <div class="dashboard-section hidden" id="section-farmers">
+                <div class="page-header">
+                    <h1>👨‍🌾 <span data-i18n="viewFarmers">Registered Users</span></h1>
+                    <p>View and manage all registered users and their roles.</p>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <h3>All Users</h3>
+                        <input type="text" class="form-input" id="farmer-search-input" placeholder="Search users..." style="max-width:250px;padding:8px 14px;font-size:0.85rem;">
+                    </div>
+                    <div class="card-body">
+                        <div class="table-container">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>User</th>
+                                        <th>Role</th>
+                                        <th>Phone</th>
+                                        <th>Location</th>
+                                        <th>Last Active</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="farmers-table-body">
+                                    <tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:2rem;">Loading...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── Section: Disease Database ── -->
+            <div class="dashboard-section hidden" id="section-diseases">
+                <div class="page-header" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;">
+                    <div>
+                        <h1>🦠 <span data-i18n="manageDiseases">Disease Database</span></h1>
+                        <p>Manage the pest and disease knowledge base.</p>
+                    </div>
+                    <button class="btn btn-primary" onclick="openCreateDisease()">
+                        ➕ <span data-i18n="createDisease">Add Disease</span>
+                    </button>
+                </div>
+                <div class="card">
+                    <div class="card-body">
+                        <div class="table-container">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Disease Name</th>
+                                        <th>Type</th>
+                                        <th>Affected Crops</th>
+                                        <th>Risk Level</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="diseases-table-body">
+                                    <tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:2rem;">Loading...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── Section: Analytics ── -->
+            <div class="dashboard-section hidden" id="section-analytics">
+                <div class="page-header">
+                    <h1>📈 <span data-i18n="analytics">System Analytics</span></h1>
+                    <p>Monitor system performance and agricultural insights.</p>
+                </div>
+                <div class="content-grid-equal">
+                    <div class="card">
+                        <div class="card-header"><h3>🌾 Crop Distribution</h3></div>
+                        <div class="card-body">
+                            <div class="chart-container" style="height:300px;">
+                                <canvas id="crop-chart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header"><h3>📊 Platform Stats</h3></div>
+                        <div class="card-body">
+                            <div style="display:flex;flex-direction:column;gap:16px;">
+                                <div style="display:flex;justify-content:space-between;align-items:center;padding:12px;background:var(--gray-50);border-radius:var(--radius-sm);">
+                                    <span style="font-weight:600;font-size:0.9rem;">Total Farms Registered</span>
+                                    <span style="font-weight:800;font-size:1.1rem;color:var(--primary-600);" id="analytics-total-farms">—</span>
+                                </div>
+                                <div style="display:flex;justify-content:space-between;align-items:center;padding:12px;background:var(--gray-50);border-radius:var(--radius-sm);">
+                                    <span style="font-weight:600;font-size:0.9rem;">Total Diseases Tracked</span>
+                                    <span style="font-weight:800;font-size:1.1rem;color:var(--primary-600);" id="analytics-total-diseases">—</span>
+                                </div>
+                                <div style="display:flex;justify-content:space-between;align-items:center;padding:12px;background:var(--gray-50);border-radius:var(--radius-sm);">
+                                    <span style="font-weight:600;font-size:0.9rem;">Total Alerts Issued</span>
+                                    <span style="font-weight:800;font-size:1.1rem;color:var(--primary-600);" id="analytics-total-alerts">—</span>
+                                </div>
+                                <div style="display:flex;justify-content:space-between;align-items:center;padding:12px;background:var(--gray-50);border-radius:var(--radius-sm);">
+                                    <span style="font-weight:600;font-size:0.9rem;">Total Admins</span>
+                                    <span style="font-weight:800;font-size:1.1rem;color:var(--primary-600);" id="analytics-total-admins">—</span>
+                                </div>
+                                <div style="display:flex;justify-content:space-between;align-items:center;padding:12px;background:#E8F5E9;border-radius:var(--radius-sm);">
+                                    <span style="font-weight:600;font-size:0.9rem;">System Health</span>
+                                    <span style="font-weight:800;font-size:1.1rem;color:var(--success);">✅ Online</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- ═══ Create Alert Modal ═══ -->
+    <div class="modal-overlay" id="alert-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>🔔 <span data-i18n="createAlert">Create Alert</span></h2>
+                <button class="modal-close" onclick="Modal.close('alert-modal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <form id="alert-form" onsubmit="saveAlert(event)">
+                    <div class="form-group">
+                        <label class="form-label">Alert Title</label>
+                        <input type="text" class="form-input" name="title" placeholder="e.g., Fall Armyworm Alert — Punjab" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-input" name="description" rows="3" placeholder="Describe the alert..." required style="resize:vertical;"></textarea>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Severity</label>
+                            <select class="form-select" name="severity" required>
+                                <option value="low">Low</option>
+                                <option value="medium" selected>Medium</option>
+                                <option value="high">High</option>
+                                <option value="critical">Critical</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Type</label>
+                            <select class="form-select" name="type" required>
+                                <option value="pest">Pest</option>
+                                <option value="disease">Disease</option>
+                                <option value="weather">Weather</option>
+                                <option value="general">General</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Affected Crops (comma separated)</label>
+                        <input type="text" class="form-input" name="affectedCrops" placeholder="e.g., Wheat, Rice, Maize">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Treatment / Advisory</label>
+                        <textarea class="form-input" name="treatment" rows="2" placeholder="Treatment advice..." style="resize:vertical;"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+                            <input type="checkbox" name="sendToAll" checked style="width:18px;height:18px;accent-color:var(--primary-600);">
+                            <span class="form-label" style="margin:0;" data-i18n="sendToAll">Send to All Farmers</span>
+                        </label>
+                    </div>
+                    <div class="modal-footer" style="padding:0;border:none;margin-top:16px;">
+                        <button type="button" class="btn btn-ghost" onclick="Modal.close('alert-modal')">Cancel</button>
+                        <button type="submit" class="btn btn-primary">🔔 Send Alert</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ Create Disease Modal ═══ -->
+    <div class="modal-overlay" id="disease-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>🦠 <span id="disease-modal-title">Add Disease Entry</span></h2>
+                <button class="modal-close" onclick="Modal.close('disease-modal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <form id="disease-form" onsubmit="saveDisease(event)">
+                    <input type="hidden" id="disease-edit-id" value="">
+                    <div class="form-group">
+                        <label class="form-label">Disease/Pest Name</label>
+                        <input type="text" class="form-input" name="name" placeholder="e.g., Fall Armyworm" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Type</label>
+                            <select class="form-select" name="type" required>
+                                <option value="pest">Pest</option>
+                                <option value="fungal">Fungal</option>
+                                <option value="bacterial">Bacterial</option>
+                                <option value="viral">Viral</option>
+                                <option value="nutritional">Nutritional</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Risk Level</label>
+                            <select class="form-select" name="riskLevel">
+                                <option value="low">Low</option>
+                                <option value="medium" selected>Medium</option>
+                                <option value="high">High</option>
+                                <option value="critical">Critical</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-input" name="description" rows="2" placeholder="Describe the disease..." required style="resize:vertical;"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Affected Crops (comma separated)</label>
+                        <input type="text" class="form-input" name="affectedCrops" placeholder="e.g., Maize, Sorghum, Rice">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Symptoms (comma separated)</label>
+                        <input type="text" class="form-input" name="symptoms" placeholder="e.g., Yellow leaves, Wilting, Brown spots">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Preventive Measures (one per line)</label>
+                        <textarea class="form-input" name="preventiveMeasures" rows="3" placeholder="Crop rotation&#10;Use resistant varieties&#10;Proper spacing" style="resize:vertical;"></textarea>
+                    </div>
+                    <div class="modal-footer" style="padding:0;border:none;margin-top:16px;">
+                        <button type="button" class="btn btn-ghost" onclick="Modal.close('disease-modal')">Cancel</button>
+                        <button type="submit" class="btn btn-primary">💾 Save Disease</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/js/i18n.js"></script>
+    <script src="/js/app.js"></script>
+    <script src="/js/auth.js"></script>
+    <script src="/js/socket-client.js"></script>
+    <script src="/js/admin-dashboard.js"></script>
+</body>
+</html>

@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Farmer Dashboard — KrishiRakshak</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌿</text></svg>">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+</head>
+<body>
+    <!-- ═══ Navbar ═══ -->
+    <nav class="navbar">
+        <div class="navbar-inner">
+            <div style="display:flex;align-items:center;gap:12px;">
+                <button class="menu-toggle" id="menu-toggle">☰</button>
+                <a href="/" class="navbar-brand">
+                    <div class="brand-icon">🌿</div>
+                    <span>KrishiRakshak</span>
+                </a>
+            </div>
+            <div class="navbar-actions">
+                <div class="lang-selector">
+                    <button class="lang-btn active" data-lang="en">EN</button>
+                    <button class="lang-btn" data-lang="hi">हिं</button>
+                    <button class="lang-btn" data-lang="pa">ਪੰ</button>
+                </div>
+                <div style="position:relative;" id="notif-wrapper">
+                    <button class="notification-bell" id="notif-bell">
+                        🔔 <span class="bell-badge" id="bell-badge-count" style="display:none;">0</span>
+                    </button>
+                    <div class="notification-dropdown" id="notif-dropdown">
+                        <div class="notif-header">
+                            <h4 data-i18n="notifications">Notifications</h4>
+                            <button class="btn btn-sm btn-ghost" id="clear-notifs-btn" data-i18n="clearAll">Clear All</button>
+                        </div>
+                        <div class="notif-list" id="notif-list">
+                            <div class="notif-empty">🔔 Loading...</div>
+                        </div>
+                    </div>
+                </div>
+                <button class="btn btn-ghost btn-sm" onclick="auth.logout()">🚪 <span data-i18n="logout">Logout</span></button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="dashboard-layout">
+        <!-- ═══ Sidebar ═══ -->
+        <div class="sidebar-overlay" id="sidebar-overlay"></div>
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-user">
+                <div class="user-avatar" id="user-avatar">F</div>
+                <div class="user-name" id="user-name">Farmer</div>
+                <div class="user-role" id="user-role">Farmer</div>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-section">Main</div>
+                <a class="nav-item active" data-section="overview" href="#">
+                    <span class="nav-icon">📊</span> <span data-i18n="dashboard">Dashboard</span>
+                </a>
+                <a class="nav-item" data-section="farms" href="#">
+                    <span class="nav-icon">🌾</span> <span data-i18n="myFarms">My Farms</span>
+                </a>
+                <a class="nav-item" data-section="alerts" href="#">
+                    <span class="nav-icon">🔔</span> <span data-i18n="alerts">Alerts</span>
+                    <span class="nav-badge" id="nav-alert-count" style="display:none;">0</span>
+                </a>
+                <a class="nav-item" data-section="weather" href="#">
+                    <span class="nav-icon">🌤️</span> <span data-i18n="weather">Weather</span>
+                </a>
+                <div class="nav-section">AI Tools</div>
+                <a class="nav-item" data-section="disease-scan" href="#">
+                    <span class="nav-icon">🔬</span> <span data-i18n="scanCrop">Disease Scanner</span>
+                </a>
+                <a class="nav-item" data-section="chatbot" href="#">
+                    <span class="nav-icon">🤖</span> <span data-i18n="chatbot">KrishiMitra Chat</span>
+                </a>
+                <div class="nav-section">Account</div>
+                <a class="nav-item" data-section="profile" href="#">
+                    <span class="nav-icon">👤</span> <span data-i18n="profile">Profile</span>
+                </a>
+                <a class="nav-item" href="#" onclick="auth.logout()">
+                    <span class="nav-icon">🚪</span> <span data-i18n="logout">Logout</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- ═══ Main Content ═══ -->
+        <main class="main-content">
+
+            <!-- ── Section: Overview ── -->
+            <div class="dashboard-section" id="section-overview">
+                <div class="page-header">
+                    <h1>👋 <span data-i18n="welcomeBack">Welcome back</span>, <span id="greeting-name">Farmer</span>!</h1>
+                    <p data-i18n="welcomeMsg">Here's what's happening with your farms today.</p>
+                </div>
+
+                <!-- Stats Row -->
+                <div class="stats-row">
+                    <div class="stat-card">
+                        <div class="stat-icon green">🌾</div>
+                        <div class="stat-value" id="stat-total-farms">0</div>
+                        <div class="stat-label" data-i18n="totalFarms">Total Farms</div>
+                        <div class="stat-change positive">↑ Active</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon amber">🔔</div>
+                        <div class="stat-value" id="stat-active-alerts">0</div>
+                        <div class="stat-label" data-i18n="activeAlerts">Active Alerts</div>
+                        <div class="stat-change negative">⚠ Attention</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon green">💚</div>
+                        <div class="stat-value" id="stat-crop-health">—</div>
+                        <div class="stat-label" data-i18n="cropHealth">Crop Health</div>
+                        <div class="stat-change positive">↑ Good</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon blue">🌡️</div>
+                        <div class="stat-value" id="stat-weather">—</div>
+                        <div class="stat-label" data-i18n="weatherToday">Weather Today</div>
+                    </div>
+                </div>
+
+                <!-- Farm Photo Carousel (Dashboard Overview) -->
+                <div class="farm-carousel-section" id="farm-carousel-section" style="display:none;">
+                    <div class="card" style="overflow:hidden;">
+                        <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;">
+                            <h3>🌾 My Farms Overview</h3>
+                            <div style="display:flex;gap:8px;">
+                                <button class="btn btn-sm btn-ghost" id="carousel-prev" onclick="slideFarmCarousel(-1)">◀</button>
+                                <button class="btn btn-sm btn-ghost" id="carousel-next" onclick="slideFarmCarousel(1)">▶</button>
+                            </div>
+                        </div>
+                        <div class="farm-carousel-track" id="farm-carousel-track">
+                            <!-- Farm slides injected via JS -->
+                        </div>
+                        <div class="carousel-dots" id="carousel-dots"></div>
+                    </div>
+                </div>
+
+                <!-- Content Grid -->
+                <div class="content-grid">
+                    <!-- Recent Alerts -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>🔔 <span data-i18n="recentAlerts">Recent Alerts</span></h3>
+                            <button class="btn btn-sm btn-ghost" onclick="switchSection('alerts')" data-i18n="viewAlerts">View All</button>
+                        </div>
+                        <div class="card-body" id="alerts-list" style="max-height:400px;overflow-y:auto;">
+                            <div style="text-align:center;padding:2rem;color:var(--text-muted);">Loading alerts...</div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions + Crop Health Chart -->
+                    <div>
+                        <div class="card" style="margin-bottom:var(--space-lg);">
+                            <div class="card-header"><h3>⚡ <span data-i18n="quickActions">Quick Actions</span></h3></div>
+                            <div class="card-body">
+                                <div class="quick-actions">
+                                    <button class="quick-action-btn" onclick="switchSection('farms'); setTimeout(openAddFarm, 300);">
+                                        <div class="action-icon">➕</div>
+                                        <span class="action-label" data-i18n="addFarm">Add Farm</span>
+                                    </button>
+                                    <button class="quick-action-btn" onclick="switchSection('disease-scan')">
+                                        <div class="action-icon">📸</div>
+                                        <span class="action-label" data-i18n="scanCrop">Scan Crop</span>
+                                    </button>
+                                    <button class="quick-action-btn" onclick="switchSection('chatbot')">
+                                        <div class="action-icon">🤖</div>
+                                        <span class="action-label" data-i18n="askExpert">Ask Expert</span>
+                                    </button>
+                                    <button class="quick-action-btn" onclick="switchSection('weather')">
+                                        <div class="action-icon">🌤️</div>
+                                        <span class="action-label" data-i18n="weather">Weather</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header"><h3>📊 <span data-i18n="cropHealth">Crop Health</span></h3></div>
+                            <div class="card-body">
+                                <div class="chart-container" style="height:220px;">
+                                    <canvas id="health-chart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── Section: My Farms ── -->
+            <div class="dashboard-section hidden" id="section-farms">
+                <div class="page-header" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;">
+                    <div>
+                        <h1>🌾 <span data-i18n="myFarms">My Farms</span></h1>
+                        <p data-i18n="manageFarmsDesc">Manage your farm plots and track crop health.</p>
+                    </div>
+                    <button class="btn btn-primary" onclick="openAddFarm()">
+                        ➕ <span data-i18n="addFarm">Add Farm</span>
+                    </button>
+                </div>
+                <div class="farm-grid" id="farms-grid">
+                    <div style="text-align:center;padding:3rem;color:var(--text-muted);grid-column:1/-1;">Loading farms...</div>
+                </div>
+            </div>
+
+            <!-- ── Section: Alerts ── -->
+            <div class="dashboard-section hidden" id="section-alerts">
+                <div class="page-header">
+                    <h1>🔔 <span data-i18n="alerts">Pest & Disease Alerts</span></h1>
+                    <p data-i18n="alertsDesc">Stay updated with the latest alerts for your region and crops.</p>
+                </div>
+                <div class="card">
+                    <div class="card-body" id="full-alerts-list" style="max-height:600px;overflow-y:auto;">
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── Section: Weather ── -->
+            <div class="dashboard-section hidden" id="section-weather">
+                <div class="page-header">
+                    <h1>🌤️ <span data-i18n="weather">Weather</span></h1>
+                    <p data-i18n="weatherDesc">Real-time weather data for your farm location.</p>
+                </div>
+                <div class="content-grid-equal">
+                    <div class="weather-widget">
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+                            <span style="font-size:0.85rem;opacity:0.8;" id="weather-location">Your Location</span>
+                            <span style="font-size:0.8rem;opacity:0.6;">Live</span>
+                        </div>
+                        <div class="weather-main">
+                            <div class="weather-temp" id="weather-temp">28<sup>°C</sup></div>
+                            <div>
+                                <div class="weather-icon" id="weather-icon">🌤️</div>
+                                <div class="weather-desc" id="weather-desc">Clear sky</div>
+                            </div>
+                        </div>
+                        <div class="weather-details">
+                            <div class="weather-detail">
+                                <div class="detail-label" data-i18n="humidity">Humidity</div>
+                                <div class="detail-value" id="weather-humidity">65%</div>
+                            </div>
+                            <div class="weather-detail">
+                                <div class="detail-label" data-i18n="wind">Wind</div>
+                                <div class="detail-value" id="weather-wind">3.2 m/s</div>
+                            </div>
+                            <div class="weather-detail">
+                                <div class="detail-label" data-i18n="rainfall">Rain</div>
+                                <div class="detail-value">0 mm</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header"><h3>🌡️ <span data-i18n="diseaseRiskAssessment">Disease Risk Assessment</span></h3></div>
+                        <div class="card-body">
+                            <p style="font-size:0.9rem;color:var(--text-secondary);margin-bottom:16px;" data-i18n="basedOnWeather">Based on current weather conditions:</p>
+                            <div style="display:flex;flex-direction:column;gap:12px;">
+                                <div style="display:flex;align-items:center;justify-content:space-between;padding:10px;background:var(--gray-50);border-radius:var(--radius-sm);">
+                                    <span style="font-size:0.85rem;" data-i18n="fungalDiseases">Fungal Diseases</span>
+                                    <span class="badge badge-medium" data-i18n="moderateRiskLabel">Moderate Risk</span>
+                                </div>
+                                <div style="display:flex;align-items:center;justify-content:space-between;padding:10px;background:var(--gray-50);border-radius:var(--radius-sm);">
+                                    <span style="font-size:0.85rem;" data-i18n="pestInfestation">Pest Infestation</span>
+                                    <span class="badge badge-low" data-i18n="lowRiskLabel">Low Risk</span>
+                                </div>
+                                <div style="display:flex;align-items:center;justify-content:space-between;padding:10px;background:var(--gray-50);border-radius:var(--radius-sm);">
+                                    <span style="font-size:0.85rem;" data-i18n="bacterialDiseases">Bacterial Diseases</span>
+                                    <span class="badge badge-low" data-i18n="lowRiskLabel">Low Risk</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── Section: Disease Scanner ── -->
+            <div class="dashboard-section hidden" id="section-disease-scan">
+                <div class="page-header">
+                    <h1>🔬 <span data-i18n="scanCrop">AI Disease Scanner</span></h1>
+                    <p data-i18n="scanDesc">Upload a photo of your crop to detect diseases using AI. Results will automatically update your farm's health status.</p>
+                </div>
+                <div class="content-grid-equal">
+                    <div class="card">
+                        <div class="card-header"><h3>📷 <span data-i18n="uploadImage">Scan Your Crop</span></h3></div>
+                        <div class="card-body">
+                            <!-- Farm Selector -->
+                            <div class="form-group" style="margin-bottom:16px;">
+                                <label class="form-label" style="font-weight:600;display:flex;align-items:center;gap:8px;">
+                                    <span style="font-size:1.1rem;">🌾</span> Which farm is this crop from? <span style="color:var(--danger);font-weight:700;">*</span>
+                                </label>
+                                <select class="form-select" id="scan-farm-select" required>
+                                    <option value="">— Select a farm (required) —</option>
+                                </select>
+                                <p style="font-size:0.75rem;color:var(--text-muted);margin-top:4px;">Farm selection is required. Health status updates automatically after scanning.</p>
+                            </div>
+
+                            <!-- Upload Area -->
+                            <div class="upload-area" id="upload-area">
+                                <div class="upload-icon">📷</div>
+                                <h3 data-i18n="dragDrop">Drag & drop or click to upload</h3>
+                                <p>Supports: JPG, PNG, WebP (max 10MB)</p>
+                            </div>
+                            <input type="file" id="crop-image-input" accept="image/*" style="display:none;">
+
+                            <!-- Image Preview -->
+                            <div id="image-preview-container" class="hidden" style="margin-top:16px;">
+                                <div style="position:relative;border-radius:var(--radius-md);overflow:hidden;border:2px solid var(--primary-200);">
+                                    <img id="image-preview" src="" alt="Crop Image" style="width:100%;max-height:300px;object-fit:cover;display:block;">
+                                    <button class="btn btn-sm btn-ghost" id="remove-preview-btn" style="position:absolute;top:8px;right:8px;background:rgba(0,0,0,0.6);color:white;border-radius:50%;width:30px;height:30px;padding:0;display:flex;align-items:center;justify-content:center;" title="Remove image">✕</button>
+                                </div>
+                                <p style="text-align:center;margin-top:8px;font-size:0.8rem;color:var(--text-muted);" id="preview-filename"></p>
+                            </div>
+
+                            <!-- Detection Result -->
+                            <div id="detection-result" class="hidden"></div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header"><h3>📋 <span data-i18n="howItWorks">How It Works</span></h3></div>
+                        <div class="card-body">
+                            <div style="display:flex;flex-direction:column;gap:20px;">
+                                <div style="display:flex;gap:14px;align-items:flex-start;">
+                                    <div class="step-number">1</div>
+                                    <div><h4 style="font-size:0.9rem;margin-bottom:4px;">Select Your Farm</h4><p style="font-size:0.82rem;color:var(--text-muted);">Choose the farm this crop sample is from to track health per-farm.</p></div>
+                                </div>
+                                <div style="display:flex;gap:14px;align-items:flex-start;">
+                                    <div class="step-number">2</div>
+                                    <div><h4 style="font-size:0.9rem;margin-bottom:4px;" data-i18n="takePhoto">Take a Photo</h4><p style="font-size:0.82rem;color:var(--text-muted);" data-i18n="takePhotoDesc">Photograph the affected leaf, stem, or fruit clearly.</p></div>
+                                </div>
+                                <div style="display:flex;gap:14px;align-items:flex-start;">
+                                    <div class="step-number">3</div>
+                                    <div><h4 style="font-size:0.9rem;margin-bottom:4px;" data-i18n="uploadImageStep">Upload Image</h4><p style="font-size:0.82rem;color:var(--text-muted);" data-i18n="uploadImageStepDesc">Upload the image here. Our AI will analyze it.</p></div>
+                                </div>
+                                <div style="display:flex;gap:14px;align-items:flex-start;">
+                                    <div class="step-number">4</div>
+                                    <div><h4 style="font-size:0.9rem;margin-bottom:4px;" data-i18n="getResults">Get Results & Auto-Update</h4><p style="font-size:0.82rem;color:var(--text-muted);">Receive disease name, confidence, treatment advice — and your farm's health status updates automatically.</p></div>
+                                </div>
+                            </div>
+
+                            <!-- Scan History -->
+                            <div style="margin-top:24px;padding-top:16px;border-top:1px solid var(--gray-200);">
+                                <h4 style="font-size:0.9rem;margin-bottom:12px;font-weight:700;">📊 Farm Health Summary</h4>
+                                <div id="farm-health-summary" style="font-size:0.85rem;color:var(--text-muted);">
+                                    <p>Scan crops to see health status per farm.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── Section: Chatbot ── -->
+            <div class="dashboard-section hidden" id="section-chatbot">
+                <div class="page-header">
+                    <h1>🤖 <span data-i18n="chatbot">KrishiMitra — AI Assistant</span></h1>
+                    <p data-i18n="chatDesc">Ask questions about crops, pests, diseases, weather, and more.</p>
+                </div>
+                <div class="chatbot-container" id="chatbot-widget">
+                    <div class="chatbot-header">
+                        <div class="bot-avatar">🌿</div>
+                        <div style="flex:1;">
+                            <h3>KrishiMitra</h3>
+                            <div class="bot-status">● Online — Ask me anything about farming</div>
+                        </div>
+                        <button class="btn btn-sm btn-ghost" onclick="if(confirm('Clear all chat history?')){auth.apiFetch('/chat/history',{method:'DELETE'}).then(()=>{location.reload()})}" title="Clear Chat" style="font-size:0.75rem;opacity:0.6;">🗑️</button>
+                    </div>
+                    <div class="chat-farm-selector" id="chat-farm-bar">
+                        <div class="chat-farm-label">
+                            <span style="font-size:0.95rem;">🌾</span>
+                            <span>Discussing farm:</span>
+                        </div>
+                        <select class="chat-farm-select" id="chat-farm-select">
+                            <option value="">All farms (general)</option>
+                        </select>
+                    </div>
+                    <div class="chat-messages"></div>
+                    <div class="chat-input-area">
+                        <button class="chat-attach-btn" id="chat-attach-btn" title="Upload crop image for analysis">📎</button>
+                        <input type="file" id="chat-image-input" accept="image/*" style="display:none;">
+                        <input type="text" class="chat-input" data-i18n="chatPlaceholder" placeholder="Ask about crops, pests, diseases...">
+                        <button class="chat-send-btn">➤</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── Section: Profile ── -->
+            <div class="dashboard-section hidden" id="section-profile">
+                <div class="page-header">
+                    <h1>👤 <span data-i18n="profile">My Profile</span></h1>
+                </div>
+                <div class="card" style="max-width:600px;">
+                    <div class="card-body">
+                        <div style="text-align:center;margin-bottom:24px;">
+                            <div style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,var(--primary-400),var(--primary-600));color:white;display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:700;margin:0 auto 12px;" id="profile-avatar">F</div>
+                            <h3 id="profile-name">Farmer</h3>
+                            <p style="color:var(--text-muted);font-size:0.85rem;" id="profile-email">farmer@example.com</p>
+                        </div>
+                        <form id="profile-form" onsubmit="updateProfile(event)">
+                            <div class="form-group">
+                                <label class="form-label" data-i18n="fullName">Full Name</label>
+                                <input type="text" class="form-input" id="profile-name-input">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" data-i18n="phone">Phone</label>
+                                <input type="tel" class="form-input" id="profile-phone-input">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" data-i18n="language">Preferred Language</label>
+                                <select class="form-select" id="profile-lang-select">
+                                    <option value="en">English</option>
+                                    <option value="hi">हिंदी (Hindi)</option>
+                                    <option value="pa">ਪੰਜਾਬੀ (Punjabi)</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary" data-i18n="save">Save</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- ═══ Add/Edit Farm Modal ═══ -->
+    <div class="modal-overlay" id="farm-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2><span id="farm-modal-icon">➕</span> <span id="farm-modal-title" data-i18n="addFarm">Add New Farm</span></h2>
+                <button class="modal-close" onclick="Modal.close('farm-modal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <form id="farm-form" onsubmit="saveFarm(event)">
+                    <input type="hidden" id="farm-edit-id" value="">
+
+                    <!-- Farm Photo Upload -->
+                    <div class="form-group">
+                        <label class="form-label">📷 Farm Photo</label>
+                        <div class="farm-photo-upload" id="farm-photo-upload">
+                            <div class="farm-photo-preview" id="farm-photo-preview" style="display:none;">
+                                <img id="farm-photo-img" src="" alt="Farm photo">
+                                <button type="button" class="remove-photo-btn" onclick="removeFarmPhoto()">✕</button>
+                            </div>
+                            <div class="farm-photo-placeholder" id="farm-photo-placeholder">
+                                <span style="font-size:2rem;">📷</span>
+                                <span style="font-size:0.82rem;color:var(--text-muted);">Click to upload farm photo</span>
+                                <span style="font-size:0.72rem;color:var(--text-muted);">JPG, PNG, WebP (max 5MB)</span>
+                            </div>
+                            <input type="file" id="farm-photo-input" accept="image/jpeg,image/png,image/webp" style="display:none;" onchange="previewFarmPhoto(this)">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" data-i18n="farmName">Farm Name</label>
+                        <input type="text" class="form-input" name="name" placeholder="e.g., North Field" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" data-i18n="cropType">Primary Crop</label>
+                            <input type="text" class="form-input" name="cropType" placeholder="e.g., Wheat" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" data-i18n="cropVariety">Variety</label>
+                            <input type="text" class="form-input" name="cropVariety" placeholder="e.g., HD-2967">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">🌿 Additional Crops <span style="font-size:0.75rem;color:var(--text-muted);">(comma-separated)</span></label>
+                        <input type="text" class="form-input" name="secondaryCrops" id="farm-secondary-crops" placeholder="e.g., Corn, Mustard, Lentils">
+                        <span style="font-size:0.72rem;color:var(--text-muted);">Multiple crops grown on the same farm</span>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" data-i18n="soilType">Soil Type</label>
+                            <select class="form-select" name="soilType" required>
+                                <option value="">Select soil type</option>
+                                <option value="clay">Clay</option>
+                                <option value="sandy">Sandy</option>
+                                <option value="loamy">Loamy</option>
+                                <option value="silt">Silt</option>
+                                <option value="peat">Peat</option>
+                                <option value="chalky">Chalky</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" data-i18n="areaAcres">Area (Acres)</label>
+                            <input type="number" class="form-input" name="areaInAcres" placeholder="5" min="0" step="0.5">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" data-i18n="plantingDate">Planting Date</label>
+                            <input type="date" class="form-input" name="plantingDate">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" data-i18n="harvestDate">Expected Harvest</label>
+                            <input type="date" class="form-input" name="expectedHarvestDate">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Village / Location</label>
+                        <input type="text" class="form-input" name="address.village" placeholder="e.g., Karnal">
+                    </div>
+                    <div class="modal-footer" style="padding:0;border:none;margin-top:16px;">
+                        <button type="button" class="btn btn-ghost" onclick="Modal.close('farm-modal')" data-i18n="cancel">Cancel</button>
+                        <button type="submit" class="btn btn-primary" id="farm-submit-btn" data-i18n="saveFarm">Save Farm</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ Alert Detail Modal ═══ -->
+    <div class="modal-overlay" id="alert-detail-modal">
+        <div class="modal">4
+            <div class="modal-header">
+                <h2>🔔 <span>Alert Details</span></h2>
+                <button class="modal-close" onclick="Modal.close('alert-detail-modal')">✕</button>
+            </div>
+            <div class="modal-body" id="alert-detail-content">
+                <div style="text-align:center;padding:2rem;">
+                    <div class="spinner" style="margin:0 auto;"></div>
+                    <p style="margin-top:1rem;color:var(--text-muted);">Loading alert details...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/js/i18n.js"></script>
+    <script src="/js/app.js"></script>
+    <script src="/js/auth.js"></script>
+    <script src="/js/socket-client.js"></script>
+    <script src="/js/chatbot.js"></script>
+    <script src="/js/farmer-dashboard.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const user = auth.userData;
+            if (user) {
+                document.getElementById('greeting-name').textContent = user.name?.split(' ')[0] || 'Farmer';
+                document.getElementById('profile-avatar').textContent = getInitials(user.name);
+                document.getElementById('profile-name').textContent = user.name;
+                document.getElementById('profile-email').textContent = user.email;
+                document.getElementById('profile-name-input').value = user.name || '';
+                document.getElementById('profile-phone-input').value = user.phone || '';
+            }
+
+            // Copy alerts to full alerts section
+            const alertsList = document.getElementById('alerts-list');
+            const fullAlerts = document.getElementById('full-alerts-list');
+            if (alertsList && fullAlerts) {
+                new MutationObserver(() => {
+                    fullAlerts.innerHTML = alertsList.innerHTML;
+                }).observe(alertsList, { childList: true, subtree: true });
+            }
+
+            // ── Notification Bell Toggle ──
+            const notifBell = document.getElementById('notif-bell');
+            const notifDropdown = document.getElementById('notif-dropdown');
+            const notifWrapper = document.getElementById('notif-wrapper');
+
+            if (notifBell && notifDropdown) {
+                notifBell.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    notifDropdown.classList.toggle('active');
+                });
+
+                // Close on click outside
+                document.addEventListener('click', (e) => {
+                    if (notifWrapper && !notifWrapper.contains(e.target)) {
+                        notifDropdown.classList.remove('active');
+                    }
+                });
+            }
+
+            // Clear notifications button
+            const clearBtn = document.getElementById('clear-notifs-btn');
+            if (clearBtn) {
+                clearBtn.addEventListener('click', () => {
+                    const list = document.getElementById('notif-list');
+                    if (list) list.innerHTML = '<div class="notif-empty">🔔 No new notifications</div>';
+                    const badge = document.getElementById('bell-badge-count');
+                    if (badge) badge.style.display = 'none';
+                });
+            }
+        });
+
+        async function updateProfile(e) {
+            e.preventDefault();
+            const name = document.getElementById('profile-name-input').value;
+            const phone = document.getElementById('profile-phone-input').value;
+            const language = document.getElementById('profile-lang-select').value;
+            try {
+                const res = await auth.apiFetch('/auth/profile', {
+                    method: 'PUT',
+                    body: JSON.stringify({ name, phone, language }),
+                });
+                if (res?.success) {
+                    auth.userData = res.data;
+                    auth._saveSession();
+                    window.i18n.setLanguage(language);
+                    Toast.success('Updated!', 'Profile saved successfully.');
+                }
+            } catch (e) {
+                Toast.error('Error', 'Could not update profile.');
+            }
+        }
+    </script>
+
+    <!-- Floating Assistant Button -->
+    <button class="floating-assistant-btn" id="floating-assistant" title="Ask KrishiMitra" onclick="switchSection('chatbot')">
+        <span class="fab-icon">🤖</span>
+        <span class="fab-label">Ask Assistant</span>
+        <span class="fab-pulse"></span>
+    </button>
+</body>
+</html>
